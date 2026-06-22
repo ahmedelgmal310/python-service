@@ -1,0 +1,44 @@
+name: push docker new version image 
+
+on: 
+ push:
+   branches:
+    - main
+
+jobs:
+  build:
+    runs-on:
+    - ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v7.0.0
+        
+      - name: setup doccker buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee
+        with:
+           username: ${{ secrets.DOCKERHUB_USERNAME }}
+           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: set version
+        run: echo "VERSION=1.${{github.run_number}}" >> $GITHUB_ENV
+
+      
+      - name: bulid docker image 
+        run: |
+         docker build \
+         -t ${{ secrets.DOCKERHUB_USERNAME }}/python-demo:${VERSION} \
+         -t ${{ secrets.DOCKERHUB_USERNAME }}/python-demo:latest \
+         .
+
+      - name: push image on hub
+        run: |
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-demo:${VERSION}
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-demo:latest
+        
+      
+
+       
